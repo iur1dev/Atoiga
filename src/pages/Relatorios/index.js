@@ -5,13 +5,14 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  Alert,
 } from "react-native";
 
 import * as Animatable from "react-native-animatable";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import { MaterialIcons } from "@expo/vector-icons";
+import { FontAwesome } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
 
 import { useNavigation } from "@react-navigation/native";
 
@@ -27,38 +28,18 @@ export default function SignIn() {
             navigation.navigate("Cadastro");
           }}
         >
-          <Ionicons name="document-text" size={45} color="black" />
-          <Text style={styles.txtButton}> Cadastro</Text>
+          <AntDesign name="smileo" size={45} color="black" />
+          <Text style={styles.txtButton}> Cobrança</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => {
-            navigation.navigate("Clientes");
-          }}
-        >
-          <Ionicons name="people" size={45} color="black" />
-          <Text style={styles.txtButton}> Clientes</Text>
+        <TouchableOpacity style={styles.button}>
+          <FontAwesome name="money" size={45} color="black" />
+          <Text style={styles.txtButton}> Valores</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => {
-            navigation.navigate("Relatorios");
-          }}
-        >
-          <MaterialIcons name="attach-money" size={45} color="black" />
-          <Text style={styles.txtButton}> Relatórios</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => {
-            navigation.navigate("Juros");
-          }}
-        >
-          <Ionicons name="settings" size={45} color="black" />
-          <Text style={styles.txtButton}> Configurações</Text>
+        <TouchableOpacity style={styles.button}>
+          <FontAwesome5 name="skull" size={45} color="black" />
+          <Text style={styles.txtButton}> Blacklist</Text>
         </TouchableOpacity>
       </Animatable.View>
     </View>

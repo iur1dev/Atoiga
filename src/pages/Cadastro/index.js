@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -6,120 +6,152 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Alert,
+  Button,
 } from "react-native";
 
 import * as Animatable from "react-native-animatable";
 
 import { useNavigation } from "@react-navigation/native";
 
-import { useForm, Controller } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
+import { TextInputMask } from "react-native-masked-text";
 
 export default function SignIn() {
+  const [nome, setNome] = useState(null);
+  const [data_nasc, setData_nasc] = useState(null);
+  const [rg, setRg] = useState(null);
+  const [cpf, setCpf] = useState(null);
+  const cpfRef = useRef(null);
+  const [telefone, setTelefone] = useState(null);
+  const [celular, setCelular] = useState(null);
+
+  const [cep, setCep] = useState(null);
+  const [cepEscolhido, setCepEscolhido] = useState("");
+  const [bairro, setBairro] = useState(null);
+  const [logradouro, setLogradouro] = useState(null);
+  const [localidade, setLocalidade] = useState(null);
+  const [numero, setNumero] = useState(null);
+
+  const [empresa, setEmpresa] = useState(null);
+  const [cep2, setCep2] = useState(null);
+  const [cepEscolhido2, setCepEscolhido2] = useState("");
+  const [bairro2, setBairro2] = useState(null);
+  const [logradouro2, setLogradouro2] = useState(null);
+  const [localidade2, setLocalidade2] = useState(null);
+  const [numero2, setNumero2] = useState(null);
+
+  const getCepData = () => {
+    const endpoint = `https://viacep.com.br/ws/${cep}/json/`;
+
+    fetch(endpoint)
+      .then((resposta) => resposta.json())
+      .then((json) => {
+        const cep2 = {
+          bairro: json.bairro,
+          logradouro: json.logradouro,
+          localidade: json.localidade,
+        };
+
+        setCepEscolhido(cep2);
+      })
+      .catch(() => {
+        Alert.alert("Erro", "Não foi possível carregar os dados do Cep");
+      });
+  };
+
+  const getCepData2 = () => {
+    const endpoint = `https://viacep.com.br/ws/${cep2}/json/`;
+
+    fetch(endpoint)
+      .then((resposta) => resposta.json())
+      .then((json) => {
+        const cep3 = {
+          bairro: json.bairro,
+          logradouro: json.logradouro,
+          localidade: json.localidade,
+        };
+
+        setCepEscolhido2(cep3);
+      })
+      .catch(() => {
+        Alert.alert("Erro", "Não foi possível carregar os dados do Cep");
+      });
+  };
+
   const navigation = useNavigation();
 
-  const schema = yup.object({
-    // pessoais
-    nome: yup.string().required("Digite o nome"),
-    email: yup.string().email("Email Invalido"),
-    celular: yup
-      .string()
-      .required("Digite o celular")
-      .min(11, "falta digito no numero"),
-    telefone: yup.string().min(10, "falta digito no numero"),
-    cpf: yup.string().required("Digite o cpf").min(11, "falta digite no cpf"),
-    rg: yup.string().min(7, "falta digito no numero"),
+  const handleSignIn = () => {
+    if (
+      nome === null ||
+      data_nasc === null ||
+      celular === null ||
+      cpf === null ||
+      rg === null ||
+      cep === null ||
+      numero === null ||
+      empresa === null ||
+      cep2 === null ||
+      numero2 === null
+    ) {
+      Alert.alert("Preencha Tudo !!!");
+    } else {
+      const requestOptions = {
+        method: "POST",
+        headers: { "Content-type": "application/x-www-form-urlencoded" },
+        body:
+          `nome=` +
+          nome +
+          `&data_nasc=` +
+          data_nasc +
+          `&rg=` +
+          rg +
+          `&cpf=` +
+          cpf +
+          `&tel=` +
+          telefone +
+          `&cel=` +
+          celular +
+          `&cep_cli=` +
+          cep +
+          `&num_cli=` +
+          numero +
+          `&rua_cli=` +
+          cepEscolhido.logradouro +
+          `&bairro_cli=` +
+          cepEscolhido.bairro +
+          `&cidade_cli=` +
+          cepEscolhido.localidade +
+          `&empresa=` +
+          empresa +
+          `&cep_empr=` +
+          cep2 +
+          `&num_empr=` +
+          numero2 +
+          `&rua_empr=` +
+          cepEscolhido2.logradouro +
+          `&bairro_empr=` +
+          cepEscolhido2.bairro +
+          `&cidade_empr=` +
+          cepEscolhido2.localidade +
+          `&`,
+      };
 
-    // endereco
-    cep: yup.string().required("Digite o cep").min(8, "falta digito no numero"),
-    numero: yup.string().required("Digite o numero"),
-    rua: yup.string().required("Digite a rua"),
-    bairro: yup.string().required("Digite o bairro"),
-    cidade: yup.string().required("Digite o cidade"),
-
-    // endereco empresa
-    empresa: yup.string().required("Digite a empresa"),
-    cep2: yup
-      .string()
-      .required("Digite o cep")
-      .min(8, "falta digito no numero"),
-    numero2: yup.string().required("Digite o numero"),
-    rua2: yup.string().required("Digite a rua"),
-    bairro2: yup.string().required("Digite o bairro"),
-    cidade2: yup.string().required("Digite o cidade"),
-  });
-
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
-    resolver: yupResolver(schema),
-  });
-
-  function handleSignIn(data) {
-    console.log(data);
-  }
-
-  // viacep
-
-  function limpa_formulário_cep() {
-    //Limpa valores do formulário de cep.
-    document.getElementById("rua").value = "";
-    document.getElementById("bairro").value = "";
-    document.getElementById("cidade").value = "";
-  }
-
-  function meu_callback(conteudo) {
-    if (!("erro" in conteudo)) {
-      //Atualiza os campos com os valores.
-      document.getElementById("rua").value = conteudo.logradouro;
-      document.getElementById("bairro").value = conteudo.bairro;
-      document.getElementById("cidade").value = conteudo.localidade;
-    } //end if.
-    else {
-      //CEP não Encontrado.
-      limpa_formulário_cep();
-      alert("CEP não encontrado.");
+      fetch("http://10.0.2.2:3000/api/atoiga_insert", requestOptions)
+        .then((response) => response.json())
+        .then((data) => console.log(data))
+        .catch((error) => console.error(error));
+      navigation.navigate("Clientes");
+      Alert.alert("Cadastrado");
     }
-  }
+  };
 
-  function pesquisacep(valor) {
-    //Nova variável "cep" somente com dígitos.
-    var cep = valor.replace(/\D/g, "");
+  function showCpf() {
+    const cpfIsValid = cpfRef?.current.isValid();
 
-    //Verifica se campo cep possui valor informado.
-    if (cep != "") {
-      //Expressão regular para validar o CEP.
-      var validacep = /^[0-9]{8}$/;
-
-      //Valida o formato do CEP.
-      if (validacep.test(cep)) {
-        //Preenche os campos com "..." enquanto consulta webservice.
-        document.getElementById("rua").value = "...";
-        document.getElementById("bairro").value = "...";
-        document.getElementById("cidade").value = "...";
-
-        //Cria um elemento javascript.
-        var script = document.createElement("script");
-
-        //Sincroniza com o callback.
-        script.src =
-          "https://viacep.com.br/ws/" + cep + "/json/?callback=meu_callback";
-
-        //Insere script no documento e carrega o conteúdo.
-        document.body.appendChild(script);
-      } //end if.
-      else {
-        //cep é inválido.
-        limpa_formulário_cep();
-        alert("Formato de CEP inválido.");
-      }
-    } //end if.
-    else {
-      //cep sem valor, limpa formulário.
-      limpa_formulário_cep();
+    if (cpfIsValid === true) {
+      alert("Verdadeiro");
+    } else {
+      alert("Falso");
     }
   }
 
@@ -134,319 +166,224 @@ export default function SignIn() {
           {/* pessoais */}
           <Text style={styles.tittle2}>Informações pessoais</Text>
 
-          <Controller
-            control={control}
-            name="nome"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                style={[
-                  styles.input,
-                  {
-                    borderBottomWidth: errors.nome && 1,
-                    borderColor: errors.nome && "#ff375b",
-                  },
-                ]}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                placeholder="Nome"
-              />
-            )}
-          ></Controller>
-          {errors.nome && (
-            <Text style={styles.labelError}>{errors.nome?.message}</Text>
-          )}
+          <TextInput
+            style={styles.input}
+            onChangeText={setNome}
+            value={nome}
+            placeholder="Nome"
+          />
 
-          <Controller
-            control={control}
-            name="email"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                style={styles.input}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                placeholder="Email"
-              />
-            )}
-          ></Controller>
-          {errors.email && (
-            <Text style={styles.labelError}>{errors.email?.message}</Text>
-          )}
-          <Controller
-            control={control}
-            name="celular"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                keyboardType="numeric"
-                style={styles.input}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                placeholder="Celular"
-              />
-            )}
-          ></Controller>
-          {errors.celular && (
-            <Text style={styles.labelError}>{errors.celular?.message}</Text>
-          )}
+          <TextInputMask
+            type={"datetime"}
+            style={styles.input}
+            onChangeText={(text) => setData_nasc(text)}
+            value={data_nasc}
+            placeholder="Data de Nascimento"
+            options={{
+              format: "DD/MM/YYYY",
+            }}
+          />
 
-          <Controller
-            control={control}
-            name="telefone"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                keyboardType="numeric"
-                style={styles.input}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                placeholder="Telefone"
-              />
-            )}
-          ></Controller>
-          {errors.telefone && (
-            <Text style={styles.labelError}>{errors.telefone?.message}</Text>
-          )}
+          <TextInputMask
+            keyboardType="numeric"
+            style={styles.input}
+            onChangeText={(text) => setCelular(text)}
+            value={celular}
+            placeholder="Celular"
+            type={"cel-phone"}
+            options={{
+              maskType: "BRL",
+              withDDD: "true",
+              dddMask: "(99) ",
+            }}
+          />
 
-          <Controller
-            control={control}
-            name="cpf"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                keyboardType="numeric"
-                style={styles.input}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                placeholder="CPF"
-              />
-            )}
-          ></Controller>
-          {errors.cpf && (
-            <Text style={styles.labelError}>{errors.cpf?.message}</Text>
-          )}
+          <TextInputMask
+            keyboardType="numeric"
+            style={styles.input}
+            onChangeText={(text) => setTelefone(text)}
+            value={telefone}
+            placeholder="Telefone"
+            type={"cel-phone"}
+            options={{
+              maskType: "BRL",
+              withDDD: "true",
+              dddMask: "(99) ",
+            }}
+          />
 
-          <Controller
-            control={control}
-            name="rg"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                keyboardType="numeric"
-                style={styles.input}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                placeholder="RG"
-              />
-            )}
-          ></Controller>
-          {errors.rg && (
-            <Text style={styles.labelError}>{errors.rg?.message}</Text>
-          )}
+          <TextInputMask
+            keyboardType="numeric"
+            style={styles.input}
+            onChangeText={(text) => setCpf(text)}
+            value={cpf}
+            placeholder="CPF"
+            type={"cpf"}
+            ref={cpfRef}
+          />
+
+          <TouchableOpacity style={styles.button} onPress={showCpf}>
+            <Text style={styles.buttonTxt}>Validar CPF</Text>
+          </TouchableOpacity>
+
+          <TextInput
+            keyboardType="numeric"
+            style={styles.input}
+            onChangeText={setRg}
+            value={rg}
+            placeholder="RG"
+          />
 
           {/* endereço */}
           <Text style={styles.tittle2}>Endereço</Text>
 
-          <Controller
-            control={control}
-            name="cep"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                keyboardType="numeric"
-                style={styles.input}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                placeholder="CEP"
-              />
-            )}
-          ></Controller>
-          {errors.cep && (
-            <Text style={styles.labelError}>{errors.cep?.message}</Text>
+          <TextInputMask
+            keyboardType="numeric"
+            style={styles.input}
+            onBlur={getCepData}
+            onChangeText={(text) => {
+              setCep(text);
+            }}
+            value={cep}
+            placeholder="CEP"
+            type={"zip-code"}
+          />
+
+          <TextInput
+            keyboardType="numeric"
+            style={styles.input}
+            onChangeText={setNumero}
+            value={numero}
+            placeholder="Número"
+          />
+
+          {cepEscolhido != null ? (
+            <TextInput
+              style={styles.input}
+              onChangeText={setLogradouro}
+              value={cepEscolhido.logradouro}
+              placeholder="Rua"
+            />
+          ) : (
+            <TextInput
+              style={styles.input}
+              onChangeText={setLogradouro}
+              value={cepEscolhido}
+              placeholder="Rua"
+            />
           )}
 
-          <Controller
-            control={control}
-            name="numero"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                keyboardType="numeric"
-                style={styles.input}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                placeholder="Número"
-              />
-            )}
-          ></Controller>
-          {errors.numero && (
-            <Text style={styles.labelError}>{errors.numero?.message}</Text>
+          {cepEscolhido != null ? (
+            <TextInput
+              style={styles.input}
+              onChangeText={setBairro}
+              value={cepEscolhido.bairro}
+              placeholder="Bairro"
+            />
+          ) : (
+            <TextInput
+              style={styles.input}
+              onChangeText={setBairro}
+              value={cepEscolhido}
+              placeholder="Bairro"
+            />
           )}
 
-          <Controller
-            control={control}
-            name="rua"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                style={styles.input}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                placeholder="Rua"
-              />
-            )}
-          ></Controller>
-          {errors.rua && (
-            <Text style={styles.labelError}>{errors.rua?.message}</Text>
-          )}
-
-          <Controller
-            control={control}
-            name="bairro"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                style={styles.input}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                placeholder="Bairro"
-              />
-            )}
-          ></Controller>
-          {errors.bairro && (
-            <Text style={styles.labelError}>{errors.bairro?.message}</Text>
-          )}
-
-          <Controller
-            control={control}
-            name="cidade"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                style={styles.input}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                placeholder="Cidade"
-              />
-            )}
-          ></Controller>
-          {errors.cidade && (
-            <Text style={styles.labelError}>{errors.cidade?.message}</Text>
+          {cepEscolhido != null ? (
+            <TextInput
+              style={styles.input}
+              onChangeText={setLocalidade}
+              value={cepEscolhido.localidade}
+              placeholder="Cidade"
+            />
+          ) : (
+            <TextInput
+              style={styles.input}
+              onChangeText={setLocalidade}
+              value={cepEscolhido}
+              placeholder="Cidade"
+            />
           )}
 
           {/* endereço empresa */}
           <Text style={styles.tittle2}>Endereço empresa</Text>
 
-          <Controller
-            control={control}
-            name="empresa"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                keyboardType="numeric"
-                style={styles.input}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                placeholder="Empresa"
-              />
-            )}
-          ></Controller>
-          {errors.empresa && (
-            <Text style={styles.labelError}>{errors.empresa?.message}</Text>
+          <TextInput
+            style={styles.input}
+            onChangeText={setEmpresa}
+            value={empresa}
+            placeholder="Empresa"
+          />
+
+          <TextInputMask
+            keyboardType="numeric"
+            style={styles.input}
+            onBlur={getCepData2}
+            onChangeText={(text) => {
+              setCep2(text);
+            }}
+            value={cep2}
+            placeholder="CEP"
+            type={"zip-code"}
+          />
+
+          <TextInput
+            keyboardType="numeric"
+            style={styles.input}
+            onChangeText={setNumero2}
+            value={numero2}
+            placeholder="Número"
+          />
+
+          {cepEscolhido2 != null ? (
+            <TextInput
+              style={styles.input}
+              onChangeText={setLogradouro2}
+              value={cepEscolhido2.logradouro}
+              placeholder="Rua"
+            />
+          ) : (
+            <TextInput
+              style={styles.input}
+              onChangeText={setLogradouro2}
+              value={cepEscolhido2}
+              placeholder="Rua"
+            />
           )}
 
-          <Controller
-            control={control}
-            name="cep2"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                keyboardType="numeric"
-                style={styles.input}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                placeholder="CEP"
-              />
-            )}
-          ></Controller>
-          {errors.cep2 && (
-            <Text style={styles.labelError}>{errors.cep2?.message}</Text>
+          {cepEscolhido2 != null ? (
+            <TextInput
+              style={styles.input}
+              onChangeText={setBairro2}
+              value={cepEscolhido2.bairro}
+              placeholder="Bairro"
+            />
+          ) : (
+            <TextInput
+              style={styles.input}
+              onChangeText={setBairro2}
+              value={cepEscolhido2}
+              placeholder="Bairro"
+            />
           )}
 
-          <Controller
-            control={control}
-            name="numero2"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                keyboardType="numeric"
-                style={styles.input}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                placeholder="Número"
-              />
-            )}
-          ></Controller>
-          {errors.numero2 && (
-            <Text style={styles.labelError}>{errors.numero2?.message}</Text>
+          {cepEscolhido2 != null ? (
+            <TextInput
+              style={styles.input}
+              onChangeText={setLocalidade2}
+              value={cepEscolhido2.localidade}
+              placeholder="Cidade"
+            />
+          ) : (
+            <TextInput
+              style={styles.input}
+              onChangeText={setLocalidade2}
+              value={cepEscolhido2}
+              placeholder="Cidade"
+            />
           )}
 
-          <Controller
-            control={control}
-            name="rua2"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                style={styles.input}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                placeholder="Rua"
-              />
-            )}
-          ></Controller>
-          {errors.rua2 && (
-            <Text style={styles.labelError}>{errors.rua2?.message}</Text>
-          )}
-
-          <Controller
-            control={control}
-            name="bairro2"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                style={styles.input}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                placeholder="Bairro"
-              />
-            )}
-          ></Controller>
-          {errors.bairro2 && (
-            <Text style={styles.labelError}>{errors.bairro2?.message}</Text>
-          )}
-
-          <Controller
-            control={control}
-            name="cidade2"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                style={styles.input}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                placeholder="Cidade"
-              />
-            )}
-          ></Controller>
-          {errors.cidade2 && (
-            <Text style={styles.labelError}>{errors.cidade2?.message}</Text>
-          )}
-
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleSubmit(handleSignIn)}
-          >
+          <TouchableOpacity style={styles.button} onPress={handleSignIn}>
             <Text style={styles.buttonTxt}>Cadastrar</Text>
           </TouchableOpacity>
         </Animatable.View>
@@ -506,4 +443,5 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginVertical: 10,
   },
+  btnCpf: {},
 });

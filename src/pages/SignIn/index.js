@@ -70,6 +70,7 @@ export default function SignIn() {
           name="password"
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
+              secureTextEntry={true}
               style={styles.input}
               onChangeText={onChange}
               onBlur={onBlur}
